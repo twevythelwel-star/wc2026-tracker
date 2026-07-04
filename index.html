@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="description"
+        content="FIFA World Cup 2026 Live Tracker + Adaptive Match Predictor. Live scores, standings, bracket, and an ELO model that learns from every result." />
+    <title>⚽ FIFA World Cup 2026 — Live Tracker & Predictor</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚽</text></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@700&display=swap"
+        rel="stylesheet" />
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#07090f" />
+    <link rel="apple-touch-icon" href="icon-192.png" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="standings.js?v=3" defer></script>
+    <script src="app.js?v=3" defer></script>
+</head>
+
+<body>
+
+    <!-- LOADING -->
+    <div id="loading-screen">
+        <div class="loader"></div>
+        <div class="loading-text">⚽ FIFA World Cup 2026</div>
+        <div class="loading-sub">Loading live data & prediction model…</div>
+    </div>
+
+    <!-- HEADER -->
+    <header>
+        <div class="header-accent"></div>
+        <div class="header-row">
+            <div>
+                <div class="eyebrow">FIFA World Cup 2026 · Live Tracker + Adaptive Predictor</div>
+                <div class="header-title">USA · Canada · Mexico</div>
+                <div class="header-sub">48 teams · 12 groups · 104 matches · Jun 11 – Jul 19, 2026</div>
+            </div>
+            <div class="header-right">
+                <div class="live-badge" id="live-header-badge"><span class="blip"></span><span
+                        id="live-badge-text">GROUP STAGE ACTIVE</span></div>
+                <div class="refresh-info">
+                    Auto-refresh in <span id="countdown">30</span>s &nbsp;·&nbsp;
+                    <span class="refresh-link" onclick="manualRefresh()"><i data-lucide="refresh-cw" class="icon-inline"></i>Now</span> &nbsp;·&nbsp;
+                    <button class="notif-btn" id="notif-btn" onclick="toggleNotifications()"><i data-lucide="bell" class="icon-inline"></i>Alerts</button> &nbsp;·&nbsp;
+                    <button class="notif-btn" id="feed-btn" onclick="toggleFeedModal()"><i data-lucide="database" class="icon-inline"></i>Feeds</button>
+                </div>
+            </div>
+        </div>
+        <div class="stats-bar">
+            <div class="stat">
+                <div class="stat-label">Played</div>
+                <div class="stat-val" id="s-played">–</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Goals</div>
+                <div class="stat-val" id="s-goals">–</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Avg/Game</div>
+                <div class="stat-val" id="s-avg">–</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Live Now</div>
+                <div class="stat-val" id="s-live">0</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Predictions</div>
+                <div class="stat-val" id="s-preds">–</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Accuracy</div>
+                <div class="stat-val" id="s-acc">–</div>
+            </div>
+            <div class="stat">
+                <div class="stat-label">Model v</div>
+                <div class="stat-val" id="s-mv">1</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- NAV -->
+    <nav>
+        <div class="nav-section">
+            <button class="tab active" onclick="showTab('overview',this)"><i data-lucide="layout-dashboard"></i>Overview<span
+                    class="tab-label-sm">Dashboard</span></button>
+            <button class="tab" onclick="showTab('live',this)"><i data-lucide="activity"></i>Live<span class="tab-label-sm">Scores</span></button>
+            <button class="tab" onclick="showTab('groups',this)"><i data-lucide="grid"></i>Groups<span
+                    class="tab-label-sm">Standings</span></button>
+            <button class="tab" onclick="showTab('results',this)"><i data-lucide="check-square"></i>Results<span
+                    class="tab-label-sm">Completed</span></button>
+            <button class="tab" onclick="showTab('upcoming',this)"><i data-lucide="calendar"></i>Fixtures<span
+                    class="tab-label-sm">Schedule</span></button>
+            <button class="tab" onclick="showTab('bracket',this)"><i data-lucide="git-branch"></i>Bracket<span
+                    class="tab-label-sm">Knockout</span></button>
+            <button class="tab" onclick="showTab('teams',this)"><i data-lucide="users"></i>Teams<span
+                    class="tab-label-sm">Statuses</span></button>
+        </div>
+        <div class="nav-divider"></div>
+        <div class="nav-section">
+            <button class="tab" onclick="showTab('predict',this)" style="color:var(--purple)"><i data-lucide="sparkles"></i>Predict<span
+                    class="tab-label-sm">AI Engine</span></button>
+            <button class="tab" onclick="showTab('accuracy',this)"><i data-lucide="trending-up"></i>Accuracy<span
+                    class="tab-label-sm">Learning</span></button>
+            <button class="tab" onclick="showTab('elo',this)"><i data-lucide="zap"></i>ELO<span class="tab-label-sm">Rankings</span></button>
+            <button class="tab" onclick="showTab('scorers',this)"><i data-lucide="medal"></i>Scorers<span class="tab-label-sm">Golden
+                    Boot</span></button>
+            <button class="tab" onclick="showTab('grade',this)"><i data-lucide="sliders"></i>Grade<span class="tab-label-sm">Train
+                    Model</span></button>
+        </div>
+    </nav>
+
+    <!-- MAIN -->
+    <main>
+        <div id="status-bar"><span class="sdot loading" id="sdot"></span><span id="stext">Connecting…</span></div>
+
+        <!-- OVERVIEW -->
+        <div id="page-overview" class="page active">
+            <div style="margin-top:14px" class="section-label">Today's Matches</div>
+            <div id="ov-today"></div>
+            <div class="section-label" style="margin-top:16px">Recent Results</div>
+            <div id="ov-recent" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px">
+            </div>
+            <div class="section-label" style="margin-top:16px">All Group Standings</div>
+            <div id="ov-standings" class="groups-grid"></div>
+        </div>
+
+        <!-- LIVE SCORES -->
+        <div id="page-live" class="page">
+            <div style="margin-top:14px" class="section-label">Live Now</div>
+            <div id="live-now"></div>
+            <div class="section-label" style="margin-top:16px">Up Next (48 hours)</div>
+            <div id="live-next" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px">
+            </div>
+        </div>
+
+        <!-- GROUPS -->
+        <div id="page-groups" class="page">
+            <div style="margin-top:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:16px">
+                <div id="grp-picker" style="display:flex; gap:6px; flex-wrap:wrap"></div>
+                <div style="display:flex; gap:10px; align-items:center">
+                    <span id="standings-loading" class="loading-spinner hidden">
+                        <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--gold); margin-right:5px; animation:pulse 1s ease-in-out infinite"></span>
+                        Updating standings...
+                    </span>
+                    <span id="standings-timestamp" style="font-size:11px; color:var(--muted)">Last Updated: –</span>
+                </div>
+            </div>
+            <div id="grp-detail"></div>
+        </div>
+
+        <!-- RESULTS -->
+        <div id="page-results" class="page">
+            <div style="margin-top:14px" class="section-label" id="res-label">Completed Matches</div>
+            <div id="all-results"
+                style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px"></div>
+        </div>
+
+        <!-- FIXTURES -->
+        <div id="page-upcoming" class="page">
+            <div style="margin-top:14px" class="section-label">Upcoming Fixtures</div>
+            <div id="upcoming-list"></div>
+        </div>
+
+        <!-- BRACKET -->
+        <div id="page-bracket" class="page">
+            <div class="bracket-header-row" style="margin-top:14px; display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+                <div class="section-label" style="margin-bottom:0">2026 WORLD CUP BRACKETOLOGY</div>
+                <div style="display:flex; gap:8px; align-items:center">
+                    <button id="bkt-toggle-proj" class="notif-btn enabled" onclick="toggleBracketProjection()">
+                        <i data-lucide="sparkles" class="icon-inline"></i>Project Bracket
+                    </button>
+                </div>
+            </div>
+            
+            <div class="bracket-outer-scroll">
+                <div id="bracket-tree-view" class="bracket-tree-container">
+                    <!-- Visual Bracket Tree dynamically rendered here -->
+                </div>
+            </div>
+
+            <div class="two-col" style="margin-top:20px">
+                <div>
+                    <div class="section-label">Best 3rd-Place Teams (Top 8 Qualify)</div>
+                    <div id="bkt-thirds" style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden"></div>
+                </div>
+                <div>
+                    <div class="section-label">Knockout Progression Stats</div>
+                    <div id="bkt-later" class="knockout-row" style="display:none"></div>
+                    <div id="bkt-later-stats" class="callout" style="margin-bottom:0">
+                        <!-- Summary stats about qualification progress -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TEAMS -->
+        <div id="page-teams" class="page">
+            <div style="margin-top:14px" class="section-label">All 48 Teams Status & Round Tracker</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:14px">Tracks every team's current tournament round, starting group, ELO rank, and status (Active/Eliminated). Updated live.</div>
+            <div id="teams-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px"></div>
+        </div>
+
+        <!-- PREDICT -->
+        <div id="page-predict" class="page">
+            <div style="margin-top:14px" class="callout">
+                <strong>How the engine works:</strong> Each match runs through a 3-layer model — ELO ratings (seeded
+                from FIFA Nov 2025 rankings and updated after every result), form weighting (last 3 results, newest
+                weighted heaviest), and learned matchup bias (applied when the model gets a prediction wrong). Your
+                picks are saved. Go to <strong>✅ Grade</strong> after each match to feed the real score back in and make
+                the model smarter.
+            </div>
+            <div class="section-label">Upcoming Matches — Predictions</div>
+            <div id="pred-list"></div>
+            <div class="ai-box">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                    <div class="section-label" style="margin-bottom:0">⚡ AI Analyst — Model Insights</div>
+                    <button class="btn-gold" id="ai-run-btn" onclick="runAI()">Run Analysis</button>
+                </div>
+                <div id="ai-result" class="ai-placeholder">Click to get AI insight on model uncertainty, blind spots,
+                    and high-confidence picks based on current ELO and history.</div>
+            </div>
+        </div>
+
+        <!-- ACCURACY -->
+        <div id="page-accuracy" class="page">
+            <div style="margin-top:14px" class="section-label">Model Performance</div>
+            <div
+                style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px">
+                <div class="acc-metrics" id="acc-metrics"></div>
+                <div class="section-label" id="hist-label">Prediction History</div>
+                <div id="pred-history"></div>
+            </div>
+            <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px"
+                id="bias-section" style="display:none">
+                <div class="section-label">Learned Matchup Biases</div>
+                <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Applied after wrong predictions. Model
+                    corrects these probabilities going forward.</div>
+                <div id="bias-list"></div>
+            </div>
+        </div>
+
+        <!-- ELO -->
+        <div id="page-elo" class="page">
+            <div style="margin-top:14px" class="section-label">Live ELO Rankings — Updated After Every Result</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:14px;line-height:1.6">Seeded from FIFA Nov 2025
+                rankings. Recomputed through all <span id="elo-match-count">28</span> completed matches. K-factor: 32.
+                Delta = change from starting value.</div>
+            <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden">
+                <div
+                    style="background:linear-gradient(90deg,#010a1e,#081828);padding:9px 14px;border-bottom:1px solid var(--border)">
+                    <span
+                        style="font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--gold2);text-transform:uppercase">All
+                        48 Teams — Current ELO</span>
+                </div>
+                <div id="elo-list"></div>
+            </div>
+        </div>
+
+        <!-- SCORERS -->
+        <div id="page-scorers" class="page">
+            <div style="margin-top:14px" class="section-label">🥇 Golden Boot Race — Top Scorers</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:14px">Updated from live sources every 30
+                seconds. Source: FIFA.com / NBC Sports.</div>
+            <div id="scorers-list"></div>
+            <div style="margin-top:20px" class="section-label">Tournament Stats</div>
+            <div id="tournament-stats"></div>
+        </div>
+
+        <!-- GRADE -->
+        <div id="page-grade" class="page">
+            <div style="margin-top:14px" class="callout">
+                <strong>Training the model:</strong> Enter the real final score for any match. The model will: (1) check
+                if it predicted correctly, (2) update ELO for both teams, (3) apply a Bayesian bias correction if it was
+                wrong, (4) increment model version and permanent save to localStorage so learning persists across
+                sessions.
+            </div>
+            <div class="section-label" style="display:flex;justify-content:space-between;align-items:center">
+                <span>Enter Final Scores — Feed Results into Model</span>
+                <button class="notif-btn" onclick="resetModel()" style="border-color:var(--red);color:var(--red);margin-bottom:6px">Reset Model & Picks</button>
+            </div>
+            <div id="grade-list"></div>
+        </div>
+
+    </main>
+
+    <!-- FEEDS MODAL -->
+    <div id="feed-overlay" class="feed-overlay" onclick="toggleFeedModal()"></div>
+    <div id="feed-modal" class="feed-modal">
+        <div class="feed-modal-header">
+            <h3><i data-lucide="database" class="icon-inline" style="color:var(--gold)"></i> Live Data Feeds Monitor</h3>
+            <button class="close-btn" onclick="toggleFeedModal()">&times;</button>
+        </div>
+        <div class="feed-modal-body">
+            <p style="font-size:12px; color:var(--muted); margin-bottom:16px;">
+                The tracker queries all 13 sources in parallel via CORS-bypassing proxy. Feeds with Auth Errors require licensing keys stored in your browser's localStorage.
+            </p>
+            <div id="feed-list" class="feed-list">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').then(reg => {
+                    console.log('[Service Worker] Registered successfully with scope:', reg.scope);
+                    
+                    // Periodically check for updates (every hour)
+                    setInterval(() => {
+                        reg.update();
+                    }, 3600000);
+
+                    // Setup listener to monitor updates
+                    reg.addEventListener('updatefound', () => {
+                        const newWorker = reg.installing;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                console.log('[Service Worker] New update installed and ready.');
+                            }
+                        });
+                    });
+                }).catch(err => {
+                    console.error('[Service Worker] Registration failed:', err);
+                });
+            });
+
+            // Reload all open pages when a new service worker takes control (skips waiting -> activates -> controllerchange)
+            let refreshing = false;
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (!refreshing) {
+                    refreshing = true;
+                    console.log('[Service Worker] Controller changed. Reloading page...');
+                    window.location.reload();
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>
